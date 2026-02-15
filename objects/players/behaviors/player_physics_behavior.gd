@@ -435,8 +435,14 @@ func _shape_recovery_process(precise: bool = false) -> bool:
 			var extended_vector: Vector2 = player.to_global(local_vector.normalized() * (local_vector.length() + 1.0))
 			var cell: Vector2i = collider.local_to_map(collider.to_local(extended_vector))
 			#var cell: Vector2i = collider.get_coords_for_body_rid(raycast.get_collider_rid())
-			var layer = collider.get_layer_for_body_rid(raycast.get_collider_rid())
-			var tile_data: TileData = collider.get_cell_tile_data(layer, cell)
+			
+			var tile_data: TileData = null
+			if collider is TileMap:
+				var layer: int = collider.get_layer_for_body_rid(raycast.get_collider_rid())
+				tile_data = collider.get_cell_tile_data(layer, cell)
+			elif collider is TileMapLayer:
+				tile_data = collider.get_cell_tile_data(cell)
+			
 			if tile_data:
 				var phys_layer = collider.tile_set.get_physics_layers_count()
 				for i in phys_layer:
