@@ -1,7 +1,7 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://crtvyydxdkshm"]
 
 [ext_resource type="Shader" uid="uid://dluvop86i8qql" path="res://engine/shaders/animated_texture.gdshader" id="1_5mms5"]
-[ext_resource type="Texture2D" uid="uid://beak146oqcwqf" path="res://game_scenes/stages/stage_6/textures/water_moon.png" id="2_8px0k"]
+[ext_resource type="Texture2D" uid="uid://bi5kq6ccklanm" path="res://engine/objects/fluid/textures/water_smooth.png" id="2_8px0k"]
 
 [resource]
 shader = ExtResource("1_5mms5")

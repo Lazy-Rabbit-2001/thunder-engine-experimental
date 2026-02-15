@@ -1,5 +1,8 @@
 extends Area2D
 
+signal checkpoint_borned
+signal checkpoint_activated
+
 const DEFAULT_SWITCH_SOUND := preload("res://engine/objects/core/checkpoint/sounds/switch.wav")
 
 @export var id: int = 0
@@ -26,6 +29,7 @@ func _ready() -> void:
 		Thunder._current_camera.teleport()
 		text.modulate.a = 1
 		animation_player.play(&"checkpoint")
+		checkpoint_borned.emit()
 
 
 func _physics_process(delta) -> void:
@@ -72,3 +76,5 @@ func activate() -> void:
 	
 	if permanent_checked && !id in Data.values.checked_cps:
 		Data.values.checked_cps.append(id)
+	
+	checkpoint_activated.emit()
