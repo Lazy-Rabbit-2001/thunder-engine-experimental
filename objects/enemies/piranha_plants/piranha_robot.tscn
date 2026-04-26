@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://cpsnxho2dm7ev" path="res://engine/objects/enemies/piranha_plants/piranha_robot.gd" id="1_eksxs"]
 [ext_resource type="Script" uid="uid://1n3p7ctv1snn" path="res://engine/scripts/nodes/enemies/enemy_attacked.gd" id="2_ketb0"]
 [ext_resource type="AudioStream" uid="uid://be3uvqev2c1p6" path="res://engine/objects/players/prefabs/sounds/kick.wav" id="3_2nkch"]
-[ext_resource type="Texture2D" uid="uid://c0gv5jsghlk8" path="res://objects/robot_piranha/texture/robot_piranha.png" id="4_rk6hd"]
+[ext_resource type="Texture2D" uid="uid://c0gv5jsghlk8" path="res://engine/objects/enemies/piranha_plants/textures/robot_piranha.png" id="4_rk6hd"]
 [ext_resource type="Texture2D" uid="uid://bxe2fyi7qpw5u" path="res://gfx/deco/light.png" id="5_7yld4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_64hdc"]
