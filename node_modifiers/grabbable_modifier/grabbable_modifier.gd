@@ -52,14 +52,24 @@ const DEFAULT_KICK_SOUND = preload("res://engine/objects/players/prefabs/sounds/
 @export var grabbing_disable_process_when_grabbed: bool = true
 ## Z-Index of the target node will match that of player's, e.g. when warping.
 @export var grabbing_match_player_z_index: bool = true
+## If [code]true[/code], after the follow-in completes, the item is thrown when the player
+## [i]is not[/i] holding the attack input ([code]!player.attacking[/code]).
+@export var grabbing_ungrab_on_attack_release: bool = false
+## If [code]false[/code], [method _do_ungrab] will not set the target [member GeneralMovementBody2D.speed]
+## from the player (use e.g. item-specific logic in [signal ungrabbed]).
+@export var grabbing_apply_player_throw_velocity: bool = true
 @export_group("Signals", "signal_")
-## Whether or not to emit the [signal ungrabbed()] signal when player dies, alongside the
-## [signal ungrabbed_player_died()] signal.
+## If [code]true[/code], the [signal ungrabbed] signal is also emitted (after setting
+## [const META_UNGRAB_FROM_PLAYER_DEATH] on the target) when the ungrab was caused by
+## player death. If [code]false[/code], only [signal ungrabbed_player_died] is emitted.
 @export var signal_emit_ungrabbed_when_player_dies: bool = true
 @export_group("Sounds", "sound_")
 @export var sound_grab_top = DEFAULT_GRAB_SOUND
 @export var sound_grab_side = DEFAULT_GRAB_SOUND
 @export var sound_throw = DEFAULT_KICK_SOUND
+## If [code]true[/code], [method _do_ungrab] does not play [member sound_throw] (e.g. when the
+## target will play it later or when death SFX may follow immediately, avoiding double kick).
+@export var grabbing_suppress_ungrab_throw_sound: bool = false
 
 @onready var player: Player = Thunder._current_player
 @onready var old_z_index: int = target_node.z_index
@@ -72,6 +82,15 @@ var _following_start: bool
 var _following: bool
 var _wait_until_floor: bool
 var _match_z_index: bool
+## Bit 5 on the target at grab time. If [code]false[/code], defer logic must not add or re-enable that bit.
+var _player_collision_layer5_before_grab: bool = false
+
+## See [method Player.control_process] — items that use [member grabbing_ungrab_on_attack_release]
+## must not use the default "press attack to throw" path on the player.
+const META_GRAB_SKIP_ATTACK_INPUT_THROW: StringName = &"grabbing_skip_attack_input_throw"
+## Set only for the [signal ungrabbed] callback when [method _do_ungrab] was called with
+## [param player_died] [code]true[/code] (so listeners can tell death ungrab from a normal throw).
+const META_UNGRAB_FROM_PLAYER_DEATH: StringName = &"grabbable_ungrab_from_player_death"
 
 
 func _ready() -> void:
@@ -94,7 +113,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if _grabbed && _following_start:
-		var _target = get_target_hold_position()
+		var _target: Vector2 = _resolve_hold_position()
 		target_node.global_position = lerp(_from_follow_pos, _target, _follow_progress)
 		_follow_progress = min(_follow_progress + 5 * delta, 1)
 		if _follow_progress == 1:
@@ -103,10 +122,14 @@ func _physics_process(delta: float) -> void:
 			_following = true
 
 	if _grabbed && _following && is_instance_valid(player):
-		var _warp_tweak = CharacterManager.get_suit_tweak("warp_animation", "", player.suit.name)
-		target_node.global_position = get_target_hold_position(_warp_tweak)
+		target_node.global_position = _resolve_hold_position()
 		if _match_z_index:
+			var _warp_tweak: bool = CharacterManager.get_suit_tweak("warp_animation", "", player.suit.name)
 			target_node.z_index = player.sprite_container.z_index + int(_warp_tweak)
+
+	if _grabbed && _following && !_following_start && grabbing_ungrab_on_attack_release && is_instance_valid(player) && !player.attacking:
+		if target_node.has_signal(&"grabbing_got_thrown"):
+			target_node.emit_signal(&"grabbing_got_thrown", false)
 
 	if !_grabbed && _wait_until_floor && target_node.is_on_floor():
 		var pl = Thunder._current_player
@@ -134,6 +157,15 @@ func _check_for_player_collision(pl: Player) -> bool:
 				if l && l is Player:
 					return false
 	return true
+
+
+func _resolve_hold_position() -> Vector2:
+	if !is_instance_valid(player) || !is_instance_valid(target_node):
+		return target_node.global_position if is_instance_valid(target_node) else Vector2()
+	var _warp_tweak: bool = CharacterManager.get_suit_tweak("warp_animation", "", player.suit.name)
+	if target_node.has_method(&"grabbable_get_hold_global_position"):
+		return target_node.call(&"grabbable_get_hold_global_position", _warp_tweak) as Vector2
+	return get_target_hold_position(_warp_tweak)
 
 
 func _top_grabbed() -> void:
@@ -174,12 +206,18 @@ func _do_grab() -> void:
 		_from_follow_pos = target_node.global_position
 		_following_start = true
 		if grabbing_defer_mario_collision_until_on_floor:
-			target_node.set_collision_layer_value(5, false)
+			_player_collision_layer5_before_grab = target_node.get_collision_layer_value(5)
+			if _player_collision_layer5_before_grab:
+				target_node.set_collision_layer_value(5, false)
+	if grabbing_ungrab_on_attack_release:
+		target_node.set_meta(META_GRAB_SKIP_ATTACK_INPUT_THROW, true)
 
 	grabbed.emit()
 
 
 func _do_ungrab(player_died: bool) -> void:
+	if target_node.has_meta(META_GRAB_SKIP_ATTACK_INPUT_THROW):
+		target_node.remove_meta(META_GRAB_SKIP_ATTACK_INPUT_THROW)
 	if grabbing_match_player_z_index:
 		_match_z_index = false
 		target_node.z_index = old_z_index
@@ -193,16 +231,21 @@ func _do_ungrab(player_died: bool) -> void:
 			_following_start = false
 			_following = false
 		
-		if grabbing_defer_mario_collision_until_on_floor:
+		if grabbing_defer_mario_collision_until_on_floor && _player_collision_layer5_before_grab:
 			target_node.set_collision_layer_value(5, false)
 			_wait_until_floor = true
-		
-		ungrabbed.emit()
+
+		if signal_emit_ungrabbed_when_player_dies:
+			target_node.set_meta(META_UNGRAB_FROM_PLAYER_DEATH, true)
+			ungrabbed.emit()
+			if target_node.has_meta(META_UNGRAB_FROM_PLAYER_DEATH):
+				target_node.remove_meta(META_UNGRAB_FROM_PLAYER_DEATH)
 		ungrabbed_player_died.emit()
 		return
 	
-	var _sfx = CharacterManager.get_sound_replace(sound_throw, DEFAULT_KICK_SOUND, "kick", true)
-	Audio.play_sound(_sfx, player, false)
+	if !grabbing_suppress_ungrab_throw_sound:
+		var _sfx = CharacterManager.get_sound_replace(sound_throw, DEFAULT_KICK_SOUND, "kick", true)
+		Audio.play_sound(_sfx, player, false)
 	if target_node is GravityBody2D:
 		_grabbed = false
 		if grabbing_disable_process_when_grabbed:
@@ -212,23 +255,26 @@ func _do_ungrab(player_died: bool) -> void:
 		_following_start = false
 		_following = false
 
-		if player.left_right != 0:
-			target_node.speed.x = grabbing_ungrab_throw_power_max.x * player.direction
-		if player.left_right == 0:
-			target_node.speed.x = grabbing_ungrab_throw_power_min.x * player.direction
-		if player.up_down < 0:
-			target_node.speed.y = grabbing_ungrab_throw_power_max.y * -1
+		if grabbing_apply_player_throw_velocity:
+			if player.left_right != 0:
+				target_node.speed.x = grabbing_ungrab_throw_power_max.x * player.direction
 			if player.left_right == 0:
-				target_node.speed.x = 0
-		if player.up_down == 0:
-			target_node.speed.y = grabbing_ungrab_throw_power_min.y * -1
+				target_node.speed.x = grabbing_ungrab_throw_power_min.x * player.direction
+			if player.up_down < 0:
+				target_node.speed.y = grabbing_ungrab_throw_power_max.y * -1
+				if player.left_right == 0:
+					target_node.speed.x = 0
+			if player.up_down == 0:
+				target_node.speed.y = grabbing_ungrab_throw_power_min.y * -1
 
-		if grabbing_defer_mario_collision_until_on_floor:
+		if grabbing_defer_mario_collision_until_on_floor && _player_collision_layer5_before_grab:
 			target_node.set_collision_layer_value(5, false)
 			_wait_until_floor = true
 
 		#await player.get_tree().physics_frame
 		player.set_deferred("is_holding", false)
+		if grabbing_ungrab_on_attack_release && is_instance_valid(player):
+			player.threw.emit()
 
 	ungrabbed.emit()
 

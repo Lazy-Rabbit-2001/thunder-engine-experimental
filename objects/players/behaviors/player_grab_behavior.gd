@@ -1,5 +1,9 @@
 extends ByNodeScript
 
+## If set on [member Player.holding_item], the default "press attack to throw" path is skipped
+## (e.g. [code]grabbing_ungrab_on_attack_release[/code] in [res://engine/node_modifiers/grabbable_modifier/grabbable_modifier.gd]).
+const GRAB_SKIP_ATTACK_INPUT_THROW: StringName = &"grabbing_skip_attack_input_throw"
+
 var player: Player
 var suit: PlayerSuit
 
@@ -22,6 +26,8 @@ func _physics_process(delta: float) -> void:
 	if player.has_stuck: return
 	
 	if is_holding && is_instance_valid(item):
+		if item.get_meta(GRAB_SKIP_ATTACK_INPUT_THROW, false):
+			return
 		if item.has_signal(&"grabbing_got_thrown"):
 			item.emit_signal(&"grabbing_got_thrown", false)
 		player.threw.emit()
