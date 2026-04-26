@@ -65,6 +65,6 @@ func _explosion() -> void:
 	for i in speeds:
 		NodeCreator.prepare_2d(DEBRIS_EFFECT, self) \
 			.bind_global_transform(right_explosion.position).create_2d(true).call_method(func(eff: Node2D):
-				eff.texture = preload("./icicle_debris.png")
+				eff.texture = preload("./textures/icicle_debris.png")
 				eff.velocity = i
 		)
