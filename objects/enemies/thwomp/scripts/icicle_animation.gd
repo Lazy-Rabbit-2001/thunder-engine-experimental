@@ -3,7 +3,7 @@ extends Area2D
 const ICE_2 = preload("../sounds/ice2.wav")
 const DEBRIS_EFFECT = preload("res://engine/objects/effects/brick_debris/brick_debris.tscn")
 
-var THWOMP_ICICLE = load("res://objects/thwomp_chilly/thwomp_icicle.tscn")
+var THWOMP_ICICLE = load("res://engine/objects/enemies/thwomp/thwomp_icicle.tscn")
 
 @export var stunning_sound: AudioStream = preload("res://engine/objects/projectiles/sounds/stun.wav")
 @export var explosion_effect: PackedScene = preload("res://engine/objects/effects/explosion/explosion.tscn")

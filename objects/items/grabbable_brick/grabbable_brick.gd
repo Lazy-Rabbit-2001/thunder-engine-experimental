@@ -6,6 +6,7 @@ const debris_effect = preload("res://engine/objects/effects/brick_debris/grabbab
 @export var breaking_speed: float = 100
 @export var break_sound = preload("res://engine/objects/bumping_blocks/_sounds/break.wav")
 @export var grab_timeout_sec: float = 6.0
+@export var gravity_affected: bool = false
 
 var activated: bool
 var flasher: Tween
@@ -18,7 +19,10 @@ var old_z_index: int
 
 
 func _physics_process(delta: float) -> void:
-	if !activated: return
+	if !activated:
+		if gravity_affected:
+			super(delta)
+		return
 	
 	super(delta)
 	
