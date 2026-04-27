@@ -190,6 +190,8 @@ func _do_player_lock() -> void:
 	_player_lock_pos = player.global_position
 	player.no_movement = true
 	await player.get_tree().create_timer(grabbing_top_grab_movement_lock_delay, false, true).timeout
+	if !is_instance_valid(player):
+		return
 	player.no_movement = false
 
 
@@ -215,7 +217,7 @@ func _do_grab() -> void:
 	grabbed.emit()
 
 
-func _do_ungrab(player_died: bool) -> void:
+func _do_ungrab(player_died: bool) -> void:	
 	if target_node.has_meta(META_GRAB_SKIP_ATTACK_INPUT_THROW):
 		target_node.remove_meta(META_GRAB_SKIP_ATTACK_INPUT_THROW)
 	if grabbing_match_player_z_index:
