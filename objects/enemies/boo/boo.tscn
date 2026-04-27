@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://cmt22ua3i8s4c"]
+[gd_scene load_steps=17 format=3 uid="uid://cmt22ua3i8s4c"]
 
 [ext_resource type="Script" uid="uid://in0l518lblva" path="res://engine/objects/enemies/boo/boo.gd" id="1_27mjo"]
 [ext_resource type="SpriteFrames" uid="uid://cgtuwhr04lmbn" path="res://engine/objects/enemies/boo/prefabs/boo3.tres" id="2_4a7fg"]
@@ -12,6 +12,7 @@
 [ext_resource type="AudioStream" uid="uid://46ern2rknx3i" path="res://engine/objects/enemies/_sounds/stomp.wav" id="6_ca3pg"]
 [ext_resource type="AudioStream" uid="uid://be3uvqev2c1p6" path="res://engine/objects/players/prefabs/sounds/kick.wav" id="8_v0c25"]
 [ext_resource type="AudioStream" uid="uid://c162tqddc8eej" path="res://engine/objects/bumping_blocks/_sounds/bump.wav" id="9_qtr4h"]
+[ext_resource type="Script" uid="uid://doq0qyrr5ihr6" path="res://engine/scripts/nodes/vision/vision.gd" id="13_hydyy"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pe1ap"]
 radius = 15.0
@@ -98,7 +99,8 @@ metadata/_edit_pinned_properties_ = [&"stomping_sound", &"stomping_creation", &"
 [node name="Vision" type="VisibleOnScreenEnabler2D" parent="."]
 modulate = Color(1, 1, 1, 0.0196078)
 position = Vector2(4.76837e-07, -2.38419e-06)
-scale = Vector2(3.2, 3.2)
+rect = Rect2(-32, -32, 64, 64)
+script = ExtResource("13_hydyy")
 metadata/_edit_lock_ = true
 
 [connection signal="killed_succeeded" from="Body/EnemyAttacked" to="." method="queue_free"]

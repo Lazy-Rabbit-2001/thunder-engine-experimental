@@ -1,57 +1,20 @@
-extends GravityBody2D
-
-signal stun
-
-@export_category("Thwomp")
-@export_group("Basic")
-@export var trigger_area: Rect2 = Rect2(Vector2(-80, -32), Vector2(160, 480))
-@export var waiting_time: float = 1
-@export var rising_speed: float = 50
-@export_group("Effect and Sound")
-@export var laughing_sound: AudioStream = preload("res://engine/objects/enemies/thwomp/sounds/laughing.wav")
-@export var stunning_sound: AudioStream = preload("res://engine/objects/projectiles/sounds/stun.wav")
-@export var explosion_effect: PackedScene = preload("res://engine/objects/effects/explosion/explosion.tscn")
+extends "res://engine/objects/enemies/thwomp/scripts/thwomp.gd"
 
 const ICICLE = preload("res://engine/objects/enemies/thwomp/thwomp_icicle.tscn")
 
-var _step: int
-var _vel: Vector2
-var _origin: Vector2
-var _stunspot: Vector2
-
-@onready var sprite: AnimatedSprite2D = $Sprite
-@onready var timer_smile: Timer = $Smile
-@onready var timer_blink: Timer = $Blink
-@onready var timer_waiting: Timer = $Waiting
-@onready var left_explosion: RayCast2D = $LeftExplosion
-@onready var right_explosion: RayCast2D = $RightExplosion
 @onready var left_icicle: Marker2D = $LeftIcicle
 @onready var right_icicle: Marker2D = $RightIcicle
 
 
-func _ready() -> void:
-	timer_blink.start(randf_range(1, 6))
-	timer_blink.timeout.connect(
-		func() -> void:
-			if sprite.animation == &"smile":
-				return
-			timer_blink.start(randf_range(1, 6))
-			sprite.play(&"blink")
-	)
-	timer_smile.timeout.connect(sprite.play.bind(&"default"))
-	timer_waiting.timeout.connect(
-		func() -> void:
-			_step = 3
-	)
-	sprite.animation_finished.connect(sprite.play.bind(&"default"))
-
-
 func _physics_process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	match _step:
 		# Waiting
 		0:
 			var player: Player = Thunder._current_player
-			if !player: return
+			if !player:
+				return
 			var ppos: Vector2 = global_transform.affine_inverse() * player.global_position
 			if trigger_area.has_point(ppos):
 				_origin = global_position
@@ -64,7 +27,7 @@ func _physics_process(delta: float) -> void:
 				# Breaks Brick
 				var bricks: bool
 				for i in get_slide_collision_count():
-					var collider = get_slide_collision(i).get_collider()
+					var collider: Node = get_slide_collision(i).get_collider()
 					if collider is StaticBumpingBlock && collider.has_method(&"got_bumped"):
 						collider.got_bumped(false)
 						if collider.has_method(&"bricks_break"):
@@ -84,9 +47,9 @@ func _physics_process(delta: float) -> void:
 						collider.got_bumped(false)
 						col = true
 				if right_explosion.is_colliding():
-					var collider = right_explosion.get_collider()
-					if is_instance_valid(collider) && collider.has_method(&"got_bumped"):
-						collider.got_bumped(false)
+					var collider2 = right_explosion.get_collider()
+					if is_instance_valid(collider2) && collider2.has_method(&"got_bumped"):
+						collider2.got_bumped(false)
 						col = true
 				if col:
 					_step = 2
@@ -118,19 +81,7 @@ func _stun() -> void:
 
 
 func _explosion() -> void:
-	NodeCreator.prepare_2d(explosion_effect, self).bind_global_transform(left_explosion.position).create_2d().call_method(
-		func(eff: Node2D) -> void:
-			left_explosion.force_raycast_update()
-			if !left_explosion.is_colliding():
-				eff.queue_free()
-	)
-	NodeCreator.prepare_2d(explosion_effect, self).bind_global_transform(right_explosion.position).create_2d().call_method(
-		func(eff: Node2D) -> void:
-			right_explosion.force_raycast_update()
-			if !right_explosion.is_colliding():
-				eff.queue_free()
-	)
-	
+	super()
 	NodeCreator.prepare_2d(ICICLE, self).bind_global_transform(left_icicle.position).create_2d(true).call_method(
 		func(eff: Node2D) -> void:
 			eff.dir = -1
@@ -139,10 +90,3 @@ func _explosion() -> void:
 		func(eff: Node2D) -> void:
 			eff.dir = 1
 	)
-
-
-func _on_smile() -> void:
-	if sprite.animation == &"smile": return
-	Audio.play_sound(laughing_sound, self)
-	sprite.play(&"smile")
-	timer_smile.start()

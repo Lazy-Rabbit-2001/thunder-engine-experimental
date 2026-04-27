@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://bjjbmm47cy47l"]
+[gd_scene load_steps=23 format=3 uid="uid://bjjbmm47cy47l"]
 
 [ext_resource type="Script" uid="uid://cxncom4if8q7o" path="res://engine/objects/enemies/boo/boo_snake.gd" id="1_affoy"]
 [ext_resource type="Script" uid="uid://1n3p7ctv1snn" path="res://engine/scripts/nodes/enemies/enemy_attacked.gd" id="2_yqgw4"]
@@ -8,6 +8,7 @@
 [ext_resource type="AudioStream" uid="uid://46ern2rknx3i" path="res://engine/objects/enemies/_sounds/stomp.wav" id="6_x8v83"]
 [ext_resource type="AudioStream" uid="uid://be3uvqev2c1p6" path="res://engine/objects/players/prefabs/sounds/kick.wav" id="7_oh3h8"]
 [ext_resource type="AudioStream" uid="uid://c162tqddc8eej" path="res://engine/objects/bumping_blocks/_sounds/bump.wav" id="8_2j0hl"]
+[ext_resource type="Script" uid="uid://doq0qyrr5ihr6" path="res://engine/scripts/nodes/vision/vision.gd" id="9_dx70k"]
 [ext_resource type="Texture2D" uid="uid://ctfjvvm01kq08" path="res://engine/objects/enemies/boo/textures/boo.png" id="9_o7m78"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_7serl"]
@@ -155,9 +156,8 @@ metadata/_edit_pinned_properties_ = [&"stomping_sound", &"stomping_creation", &"
 [node name="Vision" type="VisibleOnScreenEnabler2D" parent="."]
 modulate = Color(1, 1, 1, 0.0196078)
 position = Vector2(4.76837e-07, -2.38419e-06)
-scale = Vector2(3.2, 3.2)
-rect = Rect2(-10, -20, 20, 40)
-metadata/_edit_lock_ = true
+rect = Rect2(-32, -64, 64, 128)
+script = ExtResource("9_dx70k")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 material = SubResource("CanvasItemMaterial_wvtv0")
