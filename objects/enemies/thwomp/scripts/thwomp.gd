@@ -1,10 +1,22 @@
+@tool
 extends GravityBody2D
 
 signal stun
 
 @export_category("Thwomp")
 @export_group("Basic")
-@export var trigger_area: Rect2 = Rect2(Vector2(-80, -32), Vector2(160, 480))
+## If enabled in the editor, draws [member trigger_area] (local space) as a semi-transparent overlay.
+@export var draw_trigger_area: bool = false:
+	set(v):
+		draw_trigger_area = v
+		if Engine.is_editor_hint():
+			set_process(v)
+			queue_redraw()
+@export var trigger_area: Rect2 = Rect2(Vector2(-100, -240), Vector2(200, 720)):
+	set(v):
+		trigger_area = v
+		if Engine.is_editor_hint():
+			queue_redraw()
 @export var waiting_time: float = 1
 @export var rising_speed: float = 50
 @export_group("Effect and Sound")
@@ -26,7 +38,28 @@ var _stunspot: Vector2
 @onready var collision_shape_2d = $CollisionShape2D
 
 
+func _enter_tree() -> void:
+	if Engine.is_editor_hint():
+		set_process(draw_trigger_area)
+
+
+func _process(_delta: float) -> void:
+	if Engine.is_editor_hint() && draw_trigger_area:
+		queue_redraw()
+
+
+func _draw() -> void:
+	if !Engine.is_editor_hint() || !draw_trigger_area:
+		return
+	var fill := Color(0.28, 0.82, 1.0, 0.2)
+	var outline := Color(0.35, 0.75, 1.0, 0.95)
+	draw_rect(trigger_area, fill, true)
+	draw_rect(trigger_area, outline, false, 2.0)
+
+
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		return
 	timer_blink.start(randf_range(1, 6))
 	timer_blink.timeout.connect(
 		func() -> void:
@@ -44,6 +77,8 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	match _step:
 		# Waiting
 		0:

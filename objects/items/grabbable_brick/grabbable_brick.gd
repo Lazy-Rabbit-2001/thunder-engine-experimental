@@ -6,10 +6,12 @@ const debris_effect = preload("res://engine/objects/effects/brick_debris/grabbab
 @export var breaking_speed: float = 100
 @export var break_sound = preload("res://engine/objects/bumping_blocks/_sounds/break.wav")
 @export var grab_timeout_sec: float = 6.0
+@export var gravity_affected: bool = false
 
 var activated: bool
 var flasher: Tween
 var old_z_index: int
+var _brick_broken: bool
 
 @onready var _attack: ShapeCast2D = $Attack
 @onready var _timer_destroy: Timer = $TimerDestroy
@@ -18,7 +20,10 @@ var old_z_index: int
 
 
 func _physics_process(delta: float) -> void:
-	if !activated: return
+	if !activated:
+		if gravity_affected:
+			super(delta)
+		return
 	
 	super(delta)
 	
@@ -32,6 +37,8 @@ func _physics_process(delta: float) -> void:
 
 func break_object() -> void:
 	if process_mode == PROCESS_MODE_DISABLED:
+		return
+	if _brick_broken:
 		return
 	
 	for i in get_slide_collision_count():
@@ -52,7 +59,8 @@ func break_object() -> void:
 				eff.velocity = i
 			)
 		
-	Data.add_score(10)
+	#Data.add_score(10)
+	_brick_broken = true
 	queue_free()
 
 
