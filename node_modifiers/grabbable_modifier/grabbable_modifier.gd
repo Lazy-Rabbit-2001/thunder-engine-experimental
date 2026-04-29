@@ -12,6 +12,15 @@ signal ungrabbed_player_died
 const DEFAULT_GRAB_SOUND = preload("res://engine/objects/players/prefabs/sounds/grab.wav")
 const DEFAULT_KICK_SOUND = preload("res://engine/objects/players/prefabs/sounds/kick.wav")
 
+enum PlayerLockMethod {
+	## No changes happen to the player's physics when top-grabbing.
+	DISABLED,
+	## Player's speed gets drastically decreased the moment top-grabbing is initiated.
+	LOSE_SPEED,
+	## Player's movement gets completely locked for a specified period of time when top-grabbing.
+	LOCK_MOVEMENT,
+}
+
 @export_group("Grabbing", "grabbing_")
 ## Top grabbing will lock the player's movement for a short period and play a unique animation.
 @export var grabbing_top_enabled: bool = true:
@@ -36,7 +45,19 @@ const DEFAULT_KICK_SOUND = preload("res://engine/objects/players/prefabs/sounds/
 			target_node.add_to_group(&"#side_grabbable")
 		elif !value && target_node.is_in_group(&"#side_grabbable"):
 			target_node.remove_from_group(&"#side_grabbable")
+@export_subgroup("Top Grabbing", "grabbing_top_")
+## Specifies how the player's physics should react when top-grabbing the object.
+@export var grabbing_top_lock_method := PlayerLockMethod.LOSE_SPEED
+## Effective only for [enum PlayerLockMethod.LOCK_MOVEMENT]. Specified in seconds.
 @export_range(0.1, 0.5) var grabbing_top_grab_movement_lock_delay: float = 0.3
+## Effective only for [enum PlayerLockMethod.LOSE_SPEED]. Multiplies player's X speed by this value.
+@export_range(0.0, 1.0) var grabbing_top_grab_lose_speed_multiplier: float = 0.33
+## If [code]true[/code], the target node's [member process_mode] will be modified on
+## grabbing and ungrabbing.
+@export var grabbing_disable_process_when_grabbed: bool = true
+## Z-Index of the target node will match that of player's, e.g. when warping.
+@export var grabbing_match_player_z_index: bool = true
+@export_subgroup("Ungrabbing", "grabbing_")
 ## If [code]true[/code], ungrabbing will modify target node's collisions to collide
 ## with the player again.
 @export var grabbing_ungrab_collision_with_player: bool = true
@@ -47,11 +68,8 @@ const DEFAULT_KICK_SOUND = preload("res://engine/objects/players/prefabs/sounds/
 @export var grabbing_ungrab_throw_power_min: Vector2 = Vector2(150, 200)
 ## Player throwing power while moving.
 @export var grabbing_ungrab_throw_power_max: Vector2 = Vector2(400, 700)
-## If [code]true[/code], the target node's [member process_mode] will be modified on
-## grabbing and ungrabbing.
-@export var grabbing_disable_process_when_grabbed: bool = true
-## Z-Index of the target node will match that of player's, e.g. when warping.
-@export var grabbing_match_player_z_index: bool = true
+## Player throwing power while holding UP and moving (diagonal).
+@export var grabbing_ungrab_throw_power_diagonal: Vector2 = Vector2(400, 500)
 ## If [code]true[/code], after the follow-in completes, the item is thrown when the player
 ## [i]is not[/i] holding the attack input ([code]!player.attacking[/code]).
 @export var grabbing_ungrab_on_attack_release: bool = false
@@ -187,12 +205,16 @@ func _side_grabbed() -> void:
 
 
 func _do_player_lock() -> void:
-	_player_lock_pos = player.global_position
-	player.no_movement = true
-	await player.get_tree().create_timer(grabbing_top_grab_movement_lock_delay, false, true).timeout
-	if !is_instance_valid(player):
-		return
-	player.no_movement = false
+	match grabbing_top_lock_method:
+		PlayerLockMethod.LOSE_SPEED:
+			player.speed.x *= grabbing_top_grab_lose_speed_multiplier
+		PlayerLockMethod.LOCK_MOVEMENT:
+			_player_lock_pos = player.global_position
+			player.no_movement = true
+			await player.get_tree().create_timer(grabbing_top_grab_movement_lock_delay, false, true).timeout
+			if !is_instance_valid(player):
+				return
+			player.no_movement = false
 
 
 func _do_grab() -> void:
@@ -217,7 +239,7 @@ func _do_grab() -> void:
 	grabbed.emit()
 
 
-func _do_ungrab(player_died: bool) -> void:	
+func _do_ungrab(player_died: bool) -> void:
 	if target_node.has_meta(META_GRAB_SKIP_ATTACK_INPUT_THROW):
 		target_node.remove_meta(META_GRAB_SKIP_ATTACK_INPUT_THROW)
 	if grabbing_match_player_z_index:

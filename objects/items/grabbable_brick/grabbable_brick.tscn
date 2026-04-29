@@ -126,7 +126,7 @@ one_shot = true
 
 [node name="GrabbableModifier" parent="." instance=ExtResource("6_djh65")]
 grabbing_ungrab_collision_with_player = false
-grabbing_ungrab_throw_power_min = Vector2(300, 0)
+grabbing_ungrab_throw_power_min = Vector2(400, 0)
 
 [connection signal="killed_failed" from="Attack" to="." method="break_object"]
 [connection signal="timeout" from="TimerDestroy" to="." method="_on_timer_destroy_timeout"]
