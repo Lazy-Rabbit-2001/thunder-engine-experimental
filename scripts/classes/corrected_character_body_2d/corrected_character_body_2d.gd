@@ -48,7 +48,7 @@ func horizontal_correction(amount: int) -> void:
 	var actual_delta := get_physics_process_delta_time()
 	var subtick_check_loop_amount: int = 1
 	subtick_check_loop_amount += min(
-		floori(abs(velocity.y) / 250.0),
+		floori(abs(velocity.x) / 250.0),
 		subtick_max_horizontal_corrections_amount - 1
 	)
 	
