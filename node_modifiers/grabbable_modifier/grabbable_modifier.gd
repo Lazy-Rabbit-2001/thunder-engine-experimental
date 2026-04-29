@@ -73,6 +73,9 @@ enum PlayerLockMethod {
 ## If [code]true[/code], after the follow-in completes, the item is thrown when the player
 ## [i]is not[/i] holding the attack input ([code]!player.attacking[/code]).
 @export var grabbing_ungrab_on_attack_release: bool = false
+## If [code]true[/code], [method _do_ungrab] does not play [member sound_throw] (e.g. when the
+## target will play it later or when death SFX may follow immediately, avoiding double kick).
+@export var grabbing_suppress_ungrab_throw_sound: bool = false
 ## If [code]false[/code], [method _do_ungrab] will not set the target [member GeneralMovementBody2D.speed]
 ## from the player (use e.g. item-specific logic in [signal ungrabbed]).
 @export var grabbing_apply_player_throw_velocity: bool = true
@@ -85,9 +88,6 @@ enum PlayerLockMethod {
 @export var sound_grab_top = DEFAULT_GRAB_SOUND
 @export var sound_grab_side = DEFAULT_GRAB_SOUND
 @export var sound_throw = DEFAULT_KICK_SOUND
-## If [code]true[/code], [method _do_ungrab] does not play [member sound_throw] (e.g. when the
-## target will play it later or when death SFX may follow immediately, avoiding double kick).
-@export var grabbing_suppress_ungrab_throw_sound: bool = false
 
 @onready var player: Player = Thunder._current_player
 @onready var old_z_index: int = target_node.z_index

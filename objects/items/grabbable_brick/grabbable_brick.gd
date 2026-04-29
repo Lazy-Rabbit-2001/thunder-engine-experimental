@@ -11,6 +11,7 @@ const debris_effect = preload("res://engine/objects/effects/brick_debris/grabbab
 var activated: bool
 var flasher: Tween
 var old_z_index: int
+var _brick_broken: bool
 
 @onready var _attack: ShapeCast2D = $Attack
 @onready var _timer_destroy: Timer = $TimerDestroy
@@ -37,6 +38,8 @@ func _physics_process(delta: float) -> void:
 func break_object() -> void:
 	if process_mode == PROCESS_MODE_DISABLED:
 		return
+	if _brick_broken:
+		return
 	
 	for i in get_slide_collision_count():
 		var j: KinematicCollision2D = get_slide_collision(i)
@@ -56,7 +59,8 @@ func break_object() -> void:
 				eff.velocity = i
 			)
 		
-	Data.add_score(10)
+	#Data.add_score(10)
+	_brick_broken = true
 	queue_free()
 
 
