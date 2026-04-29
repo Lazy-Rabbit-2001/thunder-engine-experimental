@@ -1,3 +1,4 @@
+@tool
 extends "res://engine/objects/enemies/thwomp/scripts/thwomp.gd"
 
 const ICICLE = preload("res://engine/objects/enemies/thwomp/thwomp_icicle.tscn")
