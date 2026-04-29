@@ -17,6 +17,11 @@ class_name CorrectedCharacterBody2D
 ## Set to 1 to disable subtick correction (legacy method).
 @export_range(1, 16) var subtick_max_vertical_corrections_amount: int = 4
 
+## Apply subtick checks if the body's X velocity is greater than 250.[br]
+## The faster the body, the more times collisions will be checked during a single physics tick.[br]
+## Set to 1 to disable subtick correction (legacy method).
+@export_range(1, 16) var subtick_max_horizontal_corrections_amount: int = 4
+
 
 func _ready() -> void:
 	if Engine.is_editor_hint(): return
@@ -40,25 +45,33 @@ func move_and_slide_corrected() -> bool:
 func horizontal_correction(amount: int) -> void:
 	if velocity.y >= 0: return
 	
-	var delta = get_physics_process_delta_time()
-	var collide = move_and_collide(Vector2(0, velocity.y * delta).rotated(global_rotation), true)
+	var actual_delta := get_physics_process_delta_time()
+	var subtick_check_loop_amount: int = 1
+	subtick_check_loop_amount += min(
+		floori(abs(velocity.y) / 250.0),
+		subtick_max_horizontal_corrections_amount - 1
+	)
 	
-	if !collide: return
-	if Thunder.get_or_null(collide.get_collider(), "visible") == false: return
-	if Thunder.get_or_null(collide.get_collider(), "_ignore_colliding_body_correction") == true: return
-	
-	var normal = collide.get_normal().rotated(-global_rotation)
-	if abs(normal.x) >= 0.4: return
-	
-	for i in range(1, amount + 1):
-		for j in [-1.0, 1.0]:
-			if !test_move(
-				global_transform.translated(Vector2(i * j, 0)),
-				Vector2(0, velocity.y * delta).rotated(global_rotation)
-			):
-				translate(Vector2(i * j, 0).rotated(global_rotation))
-				if velocity.x * j < 0: velocity.x = 0
-				return
+	for subtick in subtick_check_loop_amount:
+		var delta := (actual_delta / float(subtick_check_loop_amount)) * float(subtick + 1)
+		var collide := move_and_collide(Vector2(0, velocity.y * delta).rotated(global_rotation), true)
+		
+		if !collide: continue
+		if Thunder.get_or_null(collide.get_collider(), "visible") == false: continue
+		if Thunder.get_or_null(collide.get_collider(), "_ignore_colliding_body_correction") == true: continue
+		
+		var normal = collide.get_normal().rotated(-global_rotation)
+		if abs(normal.x) >= 0.4: continue
+		
+		for i in range(1, amount + 1):
+			for j in [-1.0, 1.0]:
+				if !test_move(
+					global_transform.translated(Vector2(i * j, 0)),
+					Vector2(0, velocity.y * delta).rotated(global_rotation)
+				):
+					translate(Vector2(i * j, 0).rotated(global_rotation))
+					if velocity.x * j < 0: velocity.x = 0
+					return
 
 ## Process of vertical correction
 # Tile gap runover
