@@ -7,7 +7,7 @@ extends GeneralMovementBody2D
 
 func _physics_process(delta: float) -> void:
 	super(delta)
-	_attack.enabled = !is_zero_approx(velocity.length_squared())
+	_attack.enabled = velocity.length_squared() > 784
 	
 	speed.x = move_toward(speed.x, 0, deceleration * delta)
 

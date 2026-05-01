@@ -192,7 +192,7 @@ animations = [{
 "speed": 10.0
 }]
 
-[node name="Thwomp" instance=ExtResource("1_tu3pw")]
+[node name="ThwompChilly" instance=ExtResource("1_tu3pw")]
 script = ExtResource("2_fpapu")
 max_falling_speed = 2400.0
 

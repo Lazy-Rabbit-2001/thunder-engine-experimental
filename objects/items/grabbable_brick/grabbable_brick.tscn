@@ -79,12 +79,10 @@ stomping_enabled = false
 stomping_hurtable = false
 stomping_standard = Vector2(0, 0)
 killing_immune = {
-"fireball": true,
 "head": false,
-"iceball": true,
 "shell": true,
 "shell_defence": 0,
-"shell_forced": true
+"shell_forced": false
 }
 turn_into_coin_on_level_end = false
 frozen_enabled = false

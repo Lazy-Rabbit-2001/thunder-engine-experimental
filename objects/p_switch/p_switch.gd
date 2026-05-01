@@ -11,6 +11,9 @@ const P_SWITCH_RUNOUT = preload("res://engine/objects/p_switch/p_switch_runout.w
 @export var explosion_effect: PackedScene = preload("res://engine/objects/effects/smoke/smoke.tscn")
 @export var p_switch_music = preload("res://engine/objects/p_switch/p_switch_music.ogg")
 @export var p_switch_activation_sound = preload("res://engine/objects/core/checkpoint/sounds/switch.wav")
+## When enabled, adding [class Control] nodes as children will act as a working area for this P-Switch,
+## toggling coins and bricks only in the area covered by [class Control] child nodes.
+@export var use_control_children_as_working_area: bool = true
 
 @onready var collision_shape: CollisionShape2D = $Collision
 @onready var collision_shape_stomped: CollisionShape2D = $Collision2
