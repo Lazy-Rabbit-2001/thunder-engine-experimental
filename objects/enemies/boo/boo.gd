@@ -39,6 +39,7 @@ func _from_bumping_block() -> void:
 	Audio.play_sound(BOO_SOUND, self)
 	position += Vector2(0, -24).rotated(global_rotation)
 	center = global_position
+	z_index += 1
 	
 	var smoke = SMOKE.instantiate()
 	smoke.position = global_position

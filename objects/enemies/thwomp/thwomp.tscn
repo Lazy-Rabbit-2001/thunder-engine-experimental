@@ -185,6 +185,11 @@ one_shot = true
 [node name="Waiting" type="Timer" parent="."]
 one_shot = true
 
+[node name="Destroy" type="Timer" parent="."]
+process_callback = 0
+wait_time = 7.0
+one_shot = true
+
 [connection signal="killed_succeeded" from="Body/EnemyAttacked" to="." method="queue_free"]
 [connection signal="killed_succeeded" from="Body/EnemyAttacked" to="Sprite" method="set_speed_scale" binds= [0.0]]
 [connection signal="stomped_failed" from="Body/EnemyAttacked" to="." method="_on_smile"]

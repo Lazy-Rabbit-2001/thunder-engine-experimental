@@ -242,6 +242,9 @@ func pass_warp() -> void:
 		target.pass_player(player)
 		target.player_z_index = player_z_index
 		target.warp_invisible_left_right = warp_invisible_left_right
+		var cam: PlayerCamera2D = Thunder._current_camera
+		if cam:
+			cam.teleport(true, true)
 		player_warped_to_pipe_out.emit()
 		_transition_update()
 	elif warp_to_scene && !_gotoscene_patch:

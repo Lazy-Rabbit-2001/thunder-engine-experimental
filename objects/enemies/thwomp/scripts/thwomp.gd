@@ -33,6 +33,7 @@ var _stunspot: Vector2
 @onready var timer_smile: Timer = $Smile
 @onready var timer_blink: Timer = $Blink
 @onready var timer_waiting: Timer = $Waiting
+@onready var timer_destroy: Timer = $Destroy
 @onready var left_explosion: RayCast2D = $LeftExplosion
 @onready var right_explosion: RayCast2D = $RightExplosion
 @onready var collision_shape_2d = $CollisionShape2D
@@ -73,6 +74,7 @@ func _ready() -> void:
 		func() -> void:
 			_step = 3
 	)
+	timer_destroy.timeout.connect(queue_free)
 	sprite.animation_finished.connect(sprite.play.bind(&"default"))
 
 
@@ -91,6 +93,7 @@ func _physics_process(delta: float) -> void:
 			if trigger_area.has_point(ppos):
 				_origin = global_position
 				_step = 1
+				timer_destroy.start()
 		# Stunning
 		1:
 			collision = true
@@ -109,6 +112,7 @@ func _physics_process(delta: float) -> void:
 				# Non-stop for the thwomp who broke the bricks
 				if bricks:
 					_explosion()
+					timer_destroy.start()
 					return
 				# Stops if stunning on the ground
 				_step = 2
@@ -120,7 +124,8 @@ func _physics_process(delta: float) -> void:
 			collision = false
 			collision_shape_2d.disabled = true
 			
-			velocity = -_vel * rising_speed
+			#velocity = -_vel * rising_speed
+			velocity = global_position.direction_to(_origin) * rising_speed
 			do_movement(delta)
 			if (_origin - global_position).dot(_origin - _stunspot) <= 0 && global_position.distance_squared_to(_origin) <= rising_speed * delta:
 				velocity = Vector2.ZERO
@@ -133,6 +138,7 @@ func _physics_process(delta: float) -> void:
 
 func _stun() -> void:
 	stun.emit()
+	timer_destroy.stop()
 	var _sfx = CharacterManager.get_sound_replace(stunning_sound, stunning_sound, "stun", false)
 	Audio.play_sound(_sfx, self)
 	_explosion()

@@ -42,6 +42,9 @@ func _physics_process(delta: float) -> void:
 	if &"belongs_to" in par:
 		belongs_to = par.belongs_to
 	
+	if !enabled:
+		return
+	
 	match belongs_to:
 		Data.PROJECTILE_BELONGS.PLAYER:
 			_kill_enemy()

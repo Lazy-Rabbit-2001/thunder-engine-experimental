@@ -20,10 +20,15 @@ func _physics_process(delta: float) -> void:
 			if trigger_area.has_point(ppos):
 				_origin = global_position
 				_step = 1
+				timer_destroy.start()
 		# Stunning
 		1:
 			_vel = velocity.normalized()
 			motion_process(delta)
+			var ray_cast_target = Vector2(0, 4) + (speed * delta * 2).rotated(-global_rotation)
+			left_explosion.target_position = ray_cast_target
+			right_explosion.target_position = ray_cast_target
+			
 			if is_on_floor():
 				# Breaks Brick
 				var bricks: bool
@@ -36,6 +41,7 @@ func _physics_process(delta: float) -> void:
 				# Non-stop for the thwomp who broke the bricks
 				if bricks:
 					_explosion()
+					timer_destroy.start()
 					return
 				# Stops if stunning on the ground
 				_stun()
@@ -57,7 +63,8 @@ func _physics_process(delta: float) -> void:
 					_stun.call_deferred()
 		# Rising
 		3:
-			velocity = -_vel * rising_speed
+			#velocity = -_vel * rising_speed
+			velocity = global_position.direction_to(_origin) * rising_speed
 			do_movement(delta)
 			if (_origin - global_position).dot(_origin - _stunspot) <= 0 && global_position.distance_squared_to(_origin) <= 50 * delta:
 				velocity = Vector2.ZERO
@@ -71,6 +78,7 @@ func _physics_process(delta: float) -> void:
 func _stun() -> void:
 	_step = 2
 	stun.emit()
+	timer_destroy.stop()
 	var _sfx = CharacterManager.get_sound_replace(stunning_sound, stunning_sound, "stun", false)
 	Audio.play_sound(_sfx, self)
 	motion_process(1)
