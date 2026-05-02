@@ -164,6 +164,9 @@ func pass_warp() -> void:
 		target.sprite.z_index = 10
 		target.sprite_bg.z_index = 1
 		target.sprite_bg.visible = true
+		var cam: PlayerCamera2D = Thunder._current_camera
+		if cam:
+			cam.teleport(true, true)
 	elif warp_to_scene && !_gotoscene_patch:
 		Scenes.goto_scene(warp_to_scene)
 	player = null
