@@ -41,6 +41,7 @@ func _physics_process(delta: float) -> void:
 				# Non-stop for the thwomp who broke the bricks
 				if bricks:
 					_explosion()
+					timer_destroy.start()
 					return
 				# Stops if stunning on the ground
 				_stun()
