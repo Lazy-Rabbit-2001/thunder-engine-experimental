@@ -85,6 +85,7 @@ sprite = NodePath("AnimatedSprite2D")
 gravity_scale = 1.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+process_mode = 3
 sprite_frames = SubResource("SpriteFrames_k4gy3")
 autoplay = "default"
 flip_v = true
