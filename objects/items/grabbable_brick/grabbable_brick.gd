@@ -12,6 +12,7 @@ var activated: bool
 var flasher: Tween
 var old_z_index: int
 var _brick_broken: bool
+var enemy_hold_position: Vector2
 
 @onready var _attack: ShapeCast2D = $Attack
 @onready var _timer_destroy: Timer = $TimerDestroy
@@ -70,18 +71,20 @@ func reset_timers() -> void:
 	sprite_node.modulate.a = 1
 	if flasher: flasher.kill()
 
+
 func _on_grab_initiated() -> void:
 	disable_mode = CollisionObject2D.DISABLE_MODE_REMOVE
 	shape_owner_get_shape(0, 0).size = 30 * Vector2.ONE
 	reset_timers()
 
-
 func _on_ungrabbed() -> void:
 	z_index = old_z_index
 	_attack.enabled = true
+	_attack.belongs_to = Data.PROJECTILE_BELONGS.PLAYER
+	set_collision_layer_value(6, false)
+	set_collision_layer_value(7, false)
 	activated = true
 	reset_timers()
-
 
 func _on_grabbed() -> void:
 	old_z_index = z_index
@@ -95,6 +98,31 @@ func _on_grabbed() -> void:
 	activated = false
 	sprite_node.play()
 	_attack.enabled = false
+
+
+func _on_enemy_grabbed() -> void:
+	_timer_destroy_flash.paused = true
+	activated = false
+	sprite_node.play()
+	_attack.enabled = false
+
+func _on_enemy_ungrabbed() -> void:
+	_attack.enabled = true
+	#_attack.belongs_to = Data.PROJECTILE_BELONGS.ENEMY
+	$"Body/EnemyAttacked".stomping_enabled = true
+	set_collision_layer_value(5, false)
+	set_collision_layer_value(6, false)
+	set_collision_layer_value(7, false)
+	activated = true
+	reset_timers()
+
+
+func _on_enemy_owner_died() -> void:
+	pass # Replace with function body.
+
+
+func grabbable_get_enemy_hold_global_position() -> Vector2:
+	return enemy_hold_position if enemy_hold_position else global_position
 
 
 func _on_timer_destroy_timeout() -> void:
