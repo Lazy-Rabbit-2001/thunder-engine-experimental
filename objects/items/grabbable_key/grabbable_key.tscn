@@ -86,7 +86,7 @@ autoplay = "default"
 [node name="GrabbableModifier" parent="." instance=ExtResource("3_i8ho5")]
 grabbing_ungrab_throw_power_min = Vector2(250, 100)
 grabbing_ungrab_throw_power_max = Vector2(350, 500)
-grabbing_ungrab_throw_power_diagonal = Vector2(300, 350)
+enemy_ungrab_throw_power = Vector2(400, 350)
 
 [node name="VisibleOnScreenEnabler2D" type="VisibleOnScreenEnabler2D" parent="."]
 self_modulate = Color(1, 1, 1, 0)
